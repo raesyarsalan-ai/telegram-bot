@@ -1,9 +1,15 @@
 import asyncio
+import os
+
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message
 from aiogram.filters import CommandStart
 
-BOT_TOKEN = "PASTE_YOUR_BOT_TOKEN_HERE"
+# Get token from Railway Variables
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+if not BOT_TOKEN:
+    raise RuntimeError("BOT_TOKEN is not set")
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -16,5 +22,4 @@ async def main():
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    import asyncio
     asyncio.run(main())
