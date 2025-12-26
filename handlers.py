@@ -6,25 +6,35 @@ from keyboards import main_keyboard
 
 router = Router()
 
+
 @router.message(CommandStart())
 async def start_handler(message: Message):
     await message.answer(
-        "👋 Welcome!\n\n"
-        "This is a smart assistant bot.\n"
-        "Choose an option below 👇",
-        reply_markup=main_keyboard
+        "🤖 Bot is online and ready.",
+        reply_markup=main_keyboard()
     )
 
-@router.message()
-async def echo_handler(message: Message):
-    if message.text == "🤖 About Bot":
-        await message.answer("This bot is built with Python + aiogram 🚀")
 
-    elif message.text == "📞 Contact":
-        await message.answer("Contact: @your_username")
+@router.message(lambda message: message.text == "📊 Bot Status")
+async def status_handler(message: Message):
+    await message.answer(
+        "✅ Status: Online\n⚡ Performance: Stable\n🌍 Server: Running"
+    )
 
-    elif message.text == "ℹ️ Help":
-        await message.answer("Use the menu buttons to interact with the bot.")
 
-    else:
-        await message.answer(f"📝 You said:\n{message.text}")
+@router.message(lambda message: message.text == "🛠 Tools")
+async def tools_handler(message: Message):
+    await message.answer(
+        "🛠 Available Tools:\n"
+        "- Smart responses\n"
+        "- Keyboard navigation\n"
+        "- Cloud hosted bot"
+    )
+
+
+@router.message(lambda message: message.text == "ℹ️ About Bot")
+async def about_handler(message: Message):
+    await message.answer(
+        "ℹ️ This is a Telegram bot built with Python and aiogram.\n"
+        "Hosted on cloud and designed for scalability."
+    )
