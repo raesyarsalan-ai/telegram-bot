@@ -8,13 +8,46 @@ from aiogram.types import Message
 from aiogram.filters import CommandStart
 
 # ------------------------
-# Flask app (keep Render alive)
+# Flask app (Admin + keep alive)
 # ------------------------
 app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "Bot is running!"
+    return "Bot is running"
+
+@app.route("/admin")
+def admin_panel():
+    cursor.execute("""
+    SELECT telegram_id, username, first_name, joined_at
+    FROM users
+    ORDER BY joined_at DESC
+    """)
+    users = cursor.fetchall()
+
+    html = """
+    <h1>Admin Panel - Users</h1>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Telegram ID</th>
+            <th>Username</th>
+            <th>First Name</th>
+            <th>Joined At</th>
+        </tr>
+    """
+
+    for u in users:
+        html += f"""
+        <tr>
+            <td>{u[0]}</td>
+            <td>{u[1]}</td>
+            <td>{u[2]}</td>
+            <td>{u[3]}</td>
+        </tr>
+        """
+
+    html += "</table>"
+    return html
 
 def run_flask():
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
@@ -37,7 +70,6 @@ if not DATABASE_URL:
 conn = psycopg2.connect(DATABASE_URL)
 cursor = conn.cursor()
 
-# Create table if not exists
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -57,18 +89,18 @@ dp = Dispatcher()
 
 @dp.message(CommandStart())
 async def start_handler(message: Message):
-    telegram_id = message.from_user.id
-    username = message.from_user.username
-    first_name = message.from_user.first_name
-
     cursor.execute("""
     INSERT INTO users (telegram_id, username, first_name)
     VALUES (%s, %s, %s)
-    ON CONFLICT (telegram_id) DO NOTHING;
-    """, (telegram_id, username, first_name))
+    ON CONFLICT (telegram_id) DO NOTHING
+    """, (
+        message.from_user.id,
+        message.from_user.username,
+        message.from_user.first_name
+    ))
     conn.commit()
 
-    await message.answer("✅ You are registered!\nBot is connected to database.")
+    await message.answer("✅ You are registered!")
 
 async def run_bot():
     await dp.start_polling(bot)
