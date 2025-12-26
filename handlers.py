@@ -33,6 +33,15 @@ async def tools_handler(message: Message):
 
 
 @router.message(lambda message: message.text == "ℹ️ About Bot")
+from aiogram import F
+from ai_reply import simple_ai_reply
+
+
+@router.message(F.text)
+async def ai_chat_handler(message: Message):
+    reply = simple_ai_reply(message.text)
+    await message.answer(reply)
+
 async def about_handler(message: Message):
     await message.answer(
         "ℹ️ This is a Telegram bot built with Python and aiogram.\n"
