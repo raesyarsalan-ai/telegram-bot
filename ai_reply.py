@@ -1,13 +1,16 @@
-def simple_ai_reply(user_text: str) -> str:
-    user_text = user_text.lower()
+def simple_ai_reply(text: str) -> str:
+    text = text.lower().strip()
 
-    if "hello" in user_text or "hi" in user_text:
+    if text in ["hi", "hello", "hey"]:
         return "Hello 👋 How can I help you today?"
 
-    if "time" in user_text:
-        return "⏰ I can help you manage your time better."
+    if "who are you" in text:
+        return "🤖 I am a smart assistant bot built to help you."
 
-    if "motivation" in user_text:
-        return "🔥 Keep going. Small steps every day create big results."
+    if "motivation" in text:
+        return "🔥 Stay consistent. Progress comes from daily action."
 
-    return "🤖 I understand. Tell me more."
+    if "help" in text:
+        return "📌 You can use the buttons or just type your message."
+
+    return "🤖 I understand. Please tell me more."
