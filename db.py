@@ -1,28 +1,35 @@
 import os
-import psycopg2
+import asyncpg
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not set")
 
-def get_connection():
-    return psycopg2.connect(DATABASE_URL)
+pool = None
 
-def create_tables():
-    conn = get_connection()
-    cur = conn.cursor()
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        telegram_id BIGINT UNIQUE NOT NULL,
-        username TEXT,
-        first_name TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    """)
+async def connect_db():
+    global pool
+    pool = await asyncpg.create_pool(DATABASE_URL)
 
-    conn.commit()
-    cur.close()
-    conn.close()
+
+async def create_tables():
+    async with pool.acquire() as conn:
+        await conn.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            telegram_id BIGINT UNIQUE,
+            username TEXT,
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+        """)
+
+
+async def add_user(telegram_id: int, username: str | None):
+    async with pool.acquire() as conn:
+        await conn.execute("""
+        INSERT INTO users (telegram_id, username)
+        VALUES ($1, $2)
+        ON CONFLICT (telegram_id) DO NOTHING
+        """, telegram_id, username)
