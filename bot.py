@@ -24,34 +24,18 @@ def admin_panel():
         return "❌ Access denied", 403
 
     cursor.execute("""
-    SELECT telegram_id, username, first_name, joined_at
-    FROM users
-    ORDER BY joined_at DESC
+    SELECT telegram_id, text, created_at
+    FROM messages
+    ORDER BY created_at DESC
+    LIMIT 100
     """)
-    users = cursor.fetchall()
+    rows = cursor.fetchall()
 
-    html = """
-    <h1>Admin Panel</h1>
-    <table border="1" cellpadding="5">
-        <tr>
-            <th>Telegram ID</th>
-            <th>Username</th>
-            <th>First Name</th>
-            <th>Joined At</th>
-        </tr>
-    """
+    html = "<h1>Last Messages</h1><ul>"
+    for r in rows:
+        html += f"<li><b>{r[0]}</b>: {r[1]} ({r[2]})</li>"
+    html += "</ul>"
 
-    for u in users:
-        html += f"""
-        <tr>
-            <td>{u[0]}</td>
-            <td>{u[1]}</td>
-            <td>{u[2]}</td>
-            <td>{u[3]}</td>
-        </tr>
-        """
-
-    html += "</table>"
     return html
 
 def run_flask():
@@ -88,6 +72,17 @@ CREATE TABLE IF NOT EXISTS users (
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 """)
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    telegram_id BIGINT,
+    message_id BIGINT,
+    text TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+""")
+
 conn.commit()
 
 # ------------------------
@@ -110,6 +105,23 @@ async def start_handler(message: Message):
     conn.commit()
 
     await message.answer("✅ You are registered!")
+
+@dp.message()
+async def log_all_messages(message: Message):
+    if not message.text:
+        return
+
+    cursor.execute("""
+    INSERT INTO messages (telegram_id, message_id, text)
+    VALUES (%s, %s, %s)
+    """, (
+        message.from_user.id,
+        message.message_id,
+        message.text
+    ))
+    conn.commit()
+
+    await message.answer("📩 Message received")
 
 async def run_bot():
     await dp.start_polling(bot)
