@@ -2,13 +2,13 @@ import asyncio
 import os
 import threading
 import psycopg2
-from flask import Flask
+from flask import Flask, request
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message
 from aiogram.filters import CommandStart
 
 # ------------------------
-# Flask app (Admin + keep alive)
+# Flask app
 # ------------------------
 app = Flask(__name__)
 
@@ -18,6 +18,11 @@ def home():
 
 @app.route("/admin")
 def admin_panel():
+    key = request.args.get("key")
+
+    if key != ADMIN_KEY:
+        return "❌ Access denied", 403
+
     cursor.execute("""
     SELECT telegram_id, username, first_name, joined_at
     FROM users
@@ -26,7 +31,7 @@ def admin_panel():
     users = cursor.fetchall()
 
     html = """
-    <h1>Admin Panel - Users</h1>
+    <h1>Admin Panel</h1>
     <table border="1" cellpadding="5">
         <tr>
             <th>Telegram ID</th>
@@ -57,6 +62,7 @@ def run_flask():
 # ------------------------
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DATABASE_URL = os.getenv("DATABASE_URL")
+ADMIN_KEY = os.getenv("ADMIN_KEY")
 
 if not BOT_TOKEN:
     raise RuntimeError("BOT_TOKEN is not set")
@@ -64,8 +70,11 @@ if not BOT_TOKEN:
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not set")
 
+if not ADMIN_KEY:
+    raise RuntimeError("ADMIN_KEY is not set")
+
 # ------------------------
-# Database connection
+# Database
 # ------------------------
 conn = psycopg2.connect(DATABASE_URL)
 cursor = conn.cursor()
@@ -106,7 +115,7 @@ async def run_bot():
     await dp.start_polling(bot)
 
 # ------------------------
-# Run everything
+# Run
 # ------------------------
 if __name__ == "__main__":
     threading.Thread(target=run_flask).start()
