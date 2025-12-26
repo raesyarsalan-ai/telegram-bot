@@ -1,3 +1,4 @@
-aiogram==3.*
-Flask
+aiogram
+flask
 psycopg2-binary
+python-dotenv
