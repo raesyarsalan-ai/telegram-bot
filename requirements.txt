@@ -1,6 +1,4 @@
-aiogram
-flask
-psycopg2-binary
-python-dotenv
-openai
+aiogram==3.*
 asyncpg
+flask
+python-dotenv
