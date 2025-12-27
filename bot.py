@@ -1,3 +1,4 @@
+# bot.py
 import asyncio
 import os
 import threading
@@ -7,7 +8,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import Message
 from aiogram.filters import CommandStart
 
-from db import connect_db, save_message
+from db import connect_db, save_user, save_message
 
 # Fake web server for Render
 app = Flask(__name__)
@@ -29,17 +30,20 @@ dp = Dispatcher()
 
 @dp.message(CommandStart())
 async def start_handler(message: Message):
-    await message.answer("🤖 Bot is alive and connected to database!")
+    await save_user(
+        user_id=message.from_user.id,
+        username=message.from_user.username,
+        first_name=message.from_user.first_name
+    )
+    await message.answer("✅ You are registered!")
 
 @dp.message()
 async def message_handler(message: Message):
     await save_message(
         user_id=message.from_user.id,
-        username=message.from_user.username,
         text=message.text
     )
-
-    await message.answer("✅ Message saved.")
+    await message.answer("💾 Message saved.")
 
 async def main():
     await connect_db()
