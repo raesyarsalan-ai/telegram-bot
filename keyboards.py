@@ -1,12 +1,9 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
-def main_keyboard():
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text="📅 Reminder")],
-            [KeyboardButton(text="💡 Suggestion")],
-            [KeyboardButton(text="🔥 Motivation")],
-            [KeyboardButton(text="🤖 AI (soon)")]
-        ],
-        resize_keyboard=True
-    )
+main_keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="📊 Statistics")],
+        [KeyboardButton(text="ℹ️ Help")]
+    ],
+    resize_keyboard=True
+)
