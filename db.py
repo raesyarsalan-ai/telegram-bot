@@ -1,22 +1,26 @@
-import os
-import asyncpg
+import sqlite3
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-pool = None
+conn = sqlite3.connect("bot.db", check_same_thread=False)
+cursor = conn.cursor()
 
-async def connect_db():
-    global pool
-    pool = await asyncpg.create_pool(DATABASE_URL)
-    await create_tables()
+def init_db():
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY,
+        user_id INTEGER UNIQUE,
+        username TEXT,
+        first_name TEXT,
+        joined_at TEXT
+    )
+    """)
 
-async def create_tables():
-    async with pool.acquire() as conn:
-        await conn.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            user_id BIGINT UNIQUE,
-            username TEXT,
-            first_name TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        """)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        text TEXT,
+        created_at TEXT
+    )
+    """)
+
+    conn.commit()
