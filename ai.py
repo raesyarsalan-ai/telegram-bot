@@ -1,3 +1,3 @@
-# ai.py
-async def ask_ai(user_text: str) -> str:
-    return "🤖 AI is temporarily disabled. Your message has been saved."
+# AI DISABLED – WILL BE REPLACED WITH FREE MODEL LATER
+def ask_ai(text: str) -> str:
+    return "AI is currently disabled."
