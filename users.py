@@ -1,15 +1,13 @@
-users = {}
+from db import pool
 
-def save_user(user_id: int, username: str | None):
-    if user_id not in users:
-        users[user_id] = {
-            "username": username,
-            "messages": 0
-        }
-
-def increase_message_count(user_id: int):
-    if user_id in users:
-        users[user_id]["messages"] += 1
-
-def get_message_count(user_id: int) -> int:
-    return users.get(user_id, {}).get("messages", 0)
+async def save_user(user):
+    async with pool.acquire() as conn:
+        await conn.execute("""
+        INSERT INTO users (user_id, username, first_name)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (user_id) DO NOTHING
+        """,
+        user.id,
+        user.username,
+        user.first_name
+        )
