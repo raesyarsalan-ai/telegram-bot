@@ -10,12 +10,21 @@ async def connect_db():
     global pool
     if pool is None:
         pool = await asyncpg.create_pool(DATABASE_URL)
+        await create_tables()
 
-async def save_message(
-    user_id: int,
-    username: str,
-    text: str
-):
+async def create_tables():
+    async with pool.acquire() as conn:
+        await conn.execute("""
+        CREATE TABLE IF NOT EXISTS messages (
+            id SERIAL PRIMARY KEY,
+            user_id BIGINT,
+            username TEXT,
+            text TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """)
+
+async def save_message(user_id: int, username: str, text: str):
     async with pool.acquire() as conn:
         await conn.execute(
             """
