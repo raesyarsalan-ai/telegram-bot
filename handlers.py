@@ -1,26 +1,18 @@
-from aiogram import Router
 from aiogram.types import Message
-from aiogram.filters import Command
 
-from ai import ask_ai
+async def handle_message(message: Message) -> str:
+    text = message.text
 
-router = Router()
+    if text == "📅 Reminder":
+        return "⏰ Don't forget to plan your day."
 
-@router.message(Command("ai"))
-async def ai_command(message: Message):
-    await message.answer(
-        "🧠 Send me your question and I will ask the AI.\n\nType your question now:"
-    )
+    if text == "💡 Suggestion":
+        return "💡 Focus on one important task today."
 
-@router.message()
-async def ai_message_handler(message: Message):
-    user_text = message.text
+    if text == "🔥 Motivation":
+        return "🔥 Keep going. You're doing great."
 
-    if not user_text:
-        return
+    if text == "🤖 AI (soon)":
+        return "🤖 AI is temporarily disabled."
 
-    await message.answer("⏳ Thinking...")
-
-    ai_response = await ask_ai(user_text)
-
-    await message.answer(ai_response)
+    return "Please choose an option from the menu."
