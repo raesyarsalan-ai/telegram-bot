@@ -1,17 +1,27 @@
-import asyncio
-from aiogram import Bot, Dispatcher
-from config import BOT_TOKEN
-from handlers import router
-from db import init_db
+from aiogram import Router
+from aiogram.types import Message
+from aiogram.filters import CommandStart
+from keyboards import main_kb
+from users import add_user, can_use, inc_usage, is_premium
 
-async def main():
-    init_db()
+router = Router()
 
-    bot = Bot(token=BOT_TOKEN)
-    dp = Dispatcher()
-    dp.include_router(router)
+@router.message(CommandStart())
+async def start(message: Message):
+    add_user(message.from_user.id)
+    await message.answer(
+        "🤖 Welcome!\nFree users: 5 messages/day.",
+        reply_markup=main_kb
+    )
 
-    await dp.start_polling(bot)
+@router.message()
+async def chat(message: Message):
+    user_id = message.from_user.id
 
-if __name__ == "__main__":
-    asyncio.run(main())
+    if not is_premium(user_id):
+        if not can_use(user_id):
+            await message.answer("🚫 Daily limit reached. Upgrade to continue.")
+            return
+        inc_usage(user_id)
+
+    await message.answer("✅ Message received.")
